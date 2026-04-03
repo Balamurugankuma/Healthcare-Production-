@@ -160,11 +160,11 @@ export default function Register() {
           <p className="text-gray-400 mb-6">Fill in your details to get started</p>
 
           {/* Submit Error Message */}
-          {errors.submit && (
+          {error && (
             <div className="mb-6 bg-red-500/20 border border-red-500 rounded-xl p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-red-400 font-semibold text-sm">{errors.submit}</p>
+                <p className="text-red-400 font-semibold text-sm">{error}</p>
               </div>
             </div>
           )}
