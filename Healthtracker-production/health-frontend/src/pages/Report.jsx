@@ -1,4 +1,4 @@
-import { useEffect, useState  } from "react";
+import { useState } from "react";
 import { Brain, Sparkles, AlertTriangle, CheckCircle, Activity, Stethoscope, FileText, Send, Loader, Info, TrendingUp, Heart, AlertCircle, Clock } from "lucide-react";
 import API from "../services/api";
 

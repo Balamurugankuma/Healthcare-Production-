@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { Activity, Heart, Droplet, AlertCircle, TrendingUp, TrendingDown, Calendar, Download } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import API from "../services/api";
-import { useNavigate } from "react-router-dom";
 
 
 
 
 export default function Dashboard() {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState("bp");
@@ -24,14 +22,7 @@ export default function Dashboard() {
     });
   }, []);
 
-  const calculateAverage = (key) => {
-    if (logs.length === 0) return 0;
-    if (key === "bp") {
-      const systolic = logs.map(l => parseInt(l.bp.split("/")[0]));
-      return Math.round(systolic.reduce((a, b) => a + b, 0) / systolic.length);
-    }
-    return Math.round(logs.reduce((acc, log) => acc + log[key], 0) / logs.length);
-  };
+
 
   const getLatestReading = (key) => {
     if (logs.length === 0) return "N/A";

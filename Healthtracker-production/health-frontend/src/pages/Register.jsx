@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function Register() {
-  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
