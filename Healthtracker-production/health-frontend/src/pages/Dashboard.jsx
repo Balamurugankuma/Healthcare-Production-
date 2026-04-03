@@ -14,10 +14,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     API.get("/health").then(res => {
-      setLogs(res.data);
+      setLogs(Array.isArray(res.data) ? res.data : []);
       setLoading(false);
     }).catch(err => {
       console.error("Error fetching health data:", err);
+      setLogs([]);
       setLoading(false);
     });
   }, []);
