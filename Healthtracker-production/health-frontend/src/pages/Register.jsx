@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, Shield, Sparkles, AlertCircle, CheckCircle2, Phone, Calendar } from "lucide-react";
-import axios from "axios";
+import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 
@@ -88,12 +88,10 @@ export default function Register() {
 
   if (!validateForm()) return;
 
-  console.log("Submitting form:", form); // 🔍 debug
-
   try {
     setLoading(true);
 
-    await axios.post("http://localhost:5000/api/auth/register", {
+    const response = await API.post("/auth/register", {
       name: form.name,
       email: form.email,
       password: form.password,
@@ -102,16 +100,26 @@ export default function Register() {
     });
 
     setLoading(false);
-    navigate("/"); // go to login
+    if (response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      navigate("/dashboard");
+    } else {
+      navigate("/login");
+    }
   } catch (err) {
-    console.error(err);
     setLoading(false);
+    console.error("Registration error:", err);
+    
     if (err.response?.status === 409) {
-  setError("Email already registered. Please login.");
-} else {
-  setError("Registration failed. Please try again.");
-}
-
+      setError("Email already registered. Please login.");
+    } else if (err.response?.data?.message) {
+      setError(err.response.data.message);
+    } else if (err.message === "Network Error") {
+      setError("Network error. Please check your connection and try again.");
+    } else {
+      setError("Registration failed. Please try again.");
+    }
   }
 };
 

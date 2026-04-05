@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, LogIn, Shield, Sparkles, AlertCircle } from "lucide-react";
-import axios from "axios";
+import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -31,7 +31,7 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await API.post("/auth/login", {
         email,
         password,
       });
@@ -44,7 +44,15 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setLoading(false);
-      setError("Invalid email or password");
+      console.error("Login error:", err);
+      
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message === "Network Error") {
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        setError("Invalid email or password");
+      }
     }
   };
 
