@@ -5,23 +5,31 @@ const path = require("path");
 const connectDB = require("./config/db");
 
 const app = express();
+app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
-  : ["http://localhost:3000"];
+  : ["http://localhost:3000", "http://127.0.0.1:3000"];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejected origin: ${origin}`);
+      callback(new Error("CORS policy: Origin not allowed"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  exposedHeaders: ["X-Total-Count"],
+  maxAge: 86400,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
 app.use(express.json({ limit: "10kb" }));
@@ -48,15 +56,12 @@ app.use("/api/ai", require("./routes/ai"));
 if (process.env.NODE_ENV === "production") {
   const frontendBuildPath = path.join(__dirname, "../health-frontend/build");
 
-  // Serve frontend
-  app.use(express.static(frontendBuildPath));
+  app.use(express.static(frontendBuildPath, { maxAge: "1d" }));
 
-  // 🔥 SAFE fallback (NO wildcard patterns → NO crash)
   app.use((req, res, next) => {
     if (req.originalUrl.startsWith("/api")) {
       return next();
     }
-
     res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 }
@@ -68,13 +73,9 @@ app.use((req, res) => {
 
 
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
-
+  console.error("[Error]", err.message);
   res.status(err.status || 500).json({
-    message:
-      process.env.NODE_ENV === "production"
-        ? "Internal server error"
-        : err.message,
+    message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message,
   });
 });
 
@@ -82,9 +83,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT} [${
-      process.env.NODE_ENV || "development"
-    }]`
-  );
+  console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || "development"}]`);
+  console.log(`🔐 Allowed CORS origins: ${allowedOrigins.join(", ")}`);
 });
