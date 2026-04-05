@@ -41,16 +41,16 @@ app.use("/api/ai", require("./routes/ai"));
 
 if (process.env.NODE_ENV === "production") {
   const frontendBuildPath = path.join(__dirname, "../health-frontend/build");
+
   app.use(express.static(frontendBuildPath));
 
-  app.get("/*", (req, res) => {
+  app.get("*", (req, res) => {
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ message: "API route not found" });
     }
     res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 }
-
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
