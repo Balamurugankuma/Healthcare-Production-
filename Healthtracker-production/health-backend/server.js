@@ -43,7 +43,7 @@ if (process.env.NODE_ENV === "production") {
   const frontendBuildPath = path.join(__dirname, "../health-frontend/build");
   app.use(express.static(frontendBuildPath));
 
-  app.get("*", (req, res) => {
+  app.get("/*", (req, res) => {
     if (req.path.startsWith("/api/")) {
       return res.status(404).json({ message: "API route not found" });
     }
