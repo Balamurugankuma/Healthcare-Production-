@@ -45,9 +45,11 @@ Extra info: ${input.additionalInfo}
 
     setResult(res.data.result);
     setAnalyzed(true);
-  } catch (err) {
+  }    catch (err) {
     console.error(err);
-    setError("Failed to connect AI server. Check backend.");
+    setError(
+      err.response?.data?.result || "Failed to connect AI server. Check backend."
+    );
   }
 
   setLoading(false);
