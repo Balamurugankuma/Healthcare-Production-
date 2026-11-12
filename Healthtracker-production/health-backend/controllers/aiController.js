@@ -1,15 +1,20 @@
 const Groq = require("groq-sdk");
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 exports.checkHealth = async (req, res) => {
   try {
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(503).json({
+        result:
+          "AI service is not configured. Add GROQ_API_KEY to the backend environment.",
+      });
+    }
+
     const { bp, sugar, heartRate, symptoms } = req.body;
 
     if (!bp || !sugar || !heartRate) {
-      return res.status(400).json({ result: "Please provide BP, sugar, and heart rate." });
+      return res.status(400).json({
+        result: "Please provide BP, sugar, and heart rate.",
+      });
     }
 
     const prompt = `You are a helpful medical assistant AI. Analyze this patient data and respond in a clear, structured way.
@@ -29,8 +34,10 @@ Please provide:
 
 Keep the response concise, friendly, and easy to understand.`;
 
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -49,20 +56,29 @@ Keep the response concise, friendly, and easy to understand.`;
     const result = completion.choices[0]?.message?.content;
 
     if (!result) {
-      return res.status(500).json({ result: "AI returned an empty response. Please try again." });
+      return res.status(500).json({
+        result: "AI returned an empty response. Please try again.",
+      });
     }
 
-    res.json({ result });
+    return res.json({ result });
   } catch (err) {
     console.error("AI ERROR:", err.message);
 
     if (err.status === 401) {
-      return res.status(500).json({ result: "AI service authentication failed. Please contact support." });
-    }
-    if (err.status === 429) {
-      return res.status(429).json({ result: "AI service is currently rate limited. Please try again in a moment." });
+      return res.status(500).json({
+        result: "AI service authentication failed. Please contact support.",
+      });
     }
 
-    res.status(500).json({ result: "AI analysis temporarily unavailable. Please try again later." });
+    if (err.status === 429) {
+      return res.status(429).json({
+        result: "AI service is currently rate limited. Please try again in a moment.",
+      });
+    }
+
+    return res.status(500).json({
+      result: "AI analysis temporarily unavailable. Please try again later.",
+    });
   }
 };
